@@ -19,8 +19,6 @@ var game = new Phaser.Game(800, 300, Phaser.AUTO, '', { preload: preload, create
 // Globals
 var platforms;
 
-var pickups;
-
 var player;
 var playerSpeed = 150;
 var playerSuperSpeed = 300;
@@ -47,7 +45,6 @@ function create() {
     var ledge1 = platforms.create(100, 100, 'ground');
     ledge1.body.immovable = true;
     
-    
     var ledge2 = platforms.create(0, game.height - 40, 'ground');
     ledge2.body.immovable = true;
     ledge2.body.gravity.y = 0;
@@ -65,10 +62,8 @@ function create() {
 }
 
 function update() {
+    //collide player with platforms
     var hitPlatform = game.physics.arcade.collide(player, platforms);
-
-    //reset player velocity
-    player.body.velocity.x = 0;
 
     // press spacebar to make player go faster
     if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && player.body.touching.down) {
@@ -78,22 +73,21 @@ function update() {
         player.speed = playerSpeed;
     }
 
-    var cursors = game.input.keyboard.createCursorKeys();
-
-    if (cursors.left.isDown) {
+    if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
         player.body.velocity.x = -player.speed;
         player.animations.play('left');
-    } else if (cursors.right.isDown) {
+    } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
         player.body.velocity.x = player.speed;
         player.animations.play('right');
     } else {
         //idle
+        player.body.velocity.x = 0;
         player.animations.stop();
         player.frame = 4;
     }
 
     //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down && hitPlatform) {
+    if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && player.body.touching.down && hitPlatform) {
         player.body.velocity.y = -playerJumpHeight;
     }
 }
