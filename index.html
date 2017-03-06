@@ -1,9 +1,9 @@
 <!doctype html> 
 <html lang="en"> 
 <head> 
-	<meta charset="UTF-8" />
-	<title>Phaser - Making your first game, part 1</title>
-	<script type="text/javascript" src="js/phaser.min.js"></script>
+    <meta charset="UTF-8" />
+    <title>Phaser - Making your first game, part 1</title>
+    <script type="text/javascript" src="js/phaser.min.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -18,17 +18,23 @@ var game = new Phaser.Game(800, 300, Phaser.AUTO, '', { preload: preload, create
 
 // Globals
 var platforms;
+var pickups;
 
 var player;
 var playerSpeed = 150;
 var playerSuperSpeed = 300;
-var playerJumpHeight = 150;
+var playerJumpHeight = 350;
+
+var enemies;
 
 function preload() {
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
+    game.load.image('diamond', 'assets/diamond.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+    game.load.spritesheet('enemy', 'assets/baddie.png', 32, 32);
+    game.load.audio('pickup', 'assets/pickup.mp3');
 }
 
 function create() {
@@ -42,7 +48,7 @@ function create() {
     platforms = game.add.group();
     platforms.enableBody = true;
 
-    var ledge1 = platforms.create(100, 100, 'ground');
+    var ledge1 = platforms.create(100, 150, 'ground');
     ledge1.body.immovable = true;
     
     var ledge2 = platforms.create(0, game.height - 40, 'ground');
@@ -52,18 +58,67 @@ function create() {
     var ledge3 = platforms.create(400, game.height - 40, 'ground');
     ledge3.body.immovable = true;
 
+    // create pickups
+    pickups = game.add.group();
+    pickups.enableBody = true;
+    var star1 = pickups.create(100, 126, 'star');
+    var diamond1 = pickups.create(180, 122, 'diamond');
+
     //create player
-    player = game.add.sprite(200, 0, 'dude');
+    player = game.add.sprite(250, 0, 'dude');
     game.physics.arcade.enable(player);
     player.body.gravity.y = 600;
     player.speed = playerSpeed;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+    
+
+    //enemies group
+    enemies = game.add.group();
+    enemies.enableBody = true;
+
+    //add enemies
+    var enemy1 = enemies.create(50, 50, 'enemy');
+    game.physics.arcade.enable(enemy1);
+    enemy1.body.gravity.y = 600;
+    enemy1.speed = 300;
+
+    setInterval(function(){
+        enemies.forEach(function(enemy){
+            var randomX = Math.round(Math.random() * 800 + 1);
+            game.physics.arcade.moveToXY(enemy, randomX, enemy.body.y, 0, 5000)
+        });
+    }, 6000)
+}
+
+function collectStar(player, star) {
+    game.sound.play('pickup');
+    star.kill();
+}
+
+function playerHitEnemy(enemy, player) {
+    var playerY = Math.round(player.body.y - 16);
+    var enemyY = Math.round(enemy.body.y);
+
+    if(playerY > enemyY) {
+        player.kill();
+    }
+    else {
+        enemy.kill();
+    }
 }
 
 function update() {
-    //collide player with platforms
-    var hitPlatform = game.physics.arcade.collide(player, platforms);
+
+    // Collision detections
+    var playerHitsPlatform = game.physics.arcade.collide(player, platforms);
+
+    var enemyHitsPlatform = game.physics.arcade.collide(enemies, platforms);
+
+    var playerHitsEnemy = game.physics.arcade.overlap(enemies, player, playerHitEnemy);
+
+    var playerHitsPickup = game.physics.arcade.overlap(player, pickups, collectStar);
+   
 
     // press spacebar to make player go faster
     if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && player.body.touching.down) {
@@ -87,7 +142,7 @@ function update() {
     }
 
     //  Allow the player to jump if they are touching the ground.
-    if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && player.body.touching.down && hitPlatform) {
+    if (game.input.keyboard.isDown(Phaser.Keyboard.UP) && player.body.touching.down && playerHitsPlatform) {
         player.body.velocity.y = -playerJumpHeight;
     }
 }
