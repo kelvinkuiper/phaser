@@ -79,6 +79,11 @@ function create() {
 
     //add enemies
     var enemy1 = new Enemy(enemies.create(50, 50, 'enemy'));
+    var enemy2 = new Enemy(enemies.create(450, 50, 'enemy'));
+    var enemy3 = new Enemy(enemies.create(550, 50, 'enemy'));
+
+    // fire jump function once when the up key is pressed
+    game.input.keyboard.addKey(Phaser.Keyboard.UP).onDown.add(jump);
 }
 
 function update() {
@@ -91,6 +96,7 @@ function update() {
    
     // Player movement
     if(player.alive) {
+        
         if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
             player.speed = playerSuperSpeed;
         }
@@ -111,10 +117,11 @@ function update() {
             player.frame = 4;
         }
 
-        //  Allow the player to jump if they are touching the ground.
-        if (game.input.keyboard.isDown(Phaser.Keyboard.UP) && player.body.touching.down) {
-            player.body.velocity.y = -playerJumpHeight;
-        }  
+      
+
+
+
+
     }
     
 }
@@ -138,11 +145,13 @@ function collectStar(player, star) {
 }
 
 function playerHitEnemy(dude, enemy) {
+    
     var playerY = Math.round(dude.body.y + 16);
     var enemyY = Math.round(enemy.body.y);
-    
-    if(playerY < enemyY) {
+
+    if(playerY < enemyY) { 
         enemy.kill();
+        player.body.velocity.x = 0;
         player.body.velocity.y = -playerJumpHeight;
     }
     else {
@@ -150,7 +159,28 @@ function playerHitEnemy(dude, enemy) {
         player.body.velocity.x = 0;
         player.body.immovable = true;
         player.alive = false;
+        
     }
+}
+
+var jump = function() {
+    //  Allow the player to jump if they are touching the ground.
+    if(player.body.touching.down) {
+        player.body.velocity.y = -playerJumpHeight;
+        
+        //enable player to double jump
+        player.mayDoubleJump = true;
+    }
+    else {
+        // player is not touching down, allow the player to do 1 double jump
+        if(player.mayDoubleJump) {
+            player.body.velocity.y = -playerJumpHeight;
+
+            //disable the player to double jump
+            player.mayDoubleJump = false;
+        }
+    }
+      
 }
 
 </script>
