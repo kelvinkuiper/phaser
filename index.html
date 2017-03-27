@@ -14,7 +14,7 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 300, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(800, 500, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 
 // Globals
 var platforms;
@@ -27,6 +27,8 @@ var playerJumpHeight = 350;
 
 var enemies;
 
+var triggers;
+
 function preload() {
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
@@ -38,18 +40,28 @@ function preload() {
 }
 
 function create() {
+
+    game.world.setBounds(0, 0, 1600, game.height);
+
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //create background
-    game.add.sprite(0, 0, 'sky');
+    game.add.tileSprite(0, 0, 1600, game.height, 'sky');
 
     // create platforms
     platforms = game.add.group();
     platforms.enableBody = true;
 
+    //create triggers
+    triggers = game.add.group();
+
     var ledge1 = platforms.create(100, 150, 'ground');
     ledge1.body.immovable = true;
+
+    triggers.create(100, 160);
+    triggers.create(200, 160);
+
     
     var ledge2 = platforms.create(0, game.height - 40, 'ground');
     ledge2.body.immovable = true;
@@ -73,6 +85,8 @@ function create() {
     player.speed = playerSpeed;
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+    game.camera.follow(player);
 
     //enemies group
     enemies = game.add.group();
@@ -130,6 +144,13 @@ function update() {
     
 }
 
+function render() {
+
+    triggers.forEach(function(trigger) {
+        game.debug.spriteBounds(trigger);
+    });
+}
+
 var Enemy = function(sprite, moveingToLeft) {
     this.sprite = sprite;
 
@@ -138,6 +159,7 @@ var Enemy = function(sprite, moveingToLeft) {
     game.physics.arcade.enable(this.sprite);
     
     this.sprite.body.gravity.y = 600;
+    
     this.sprite.speed = 300;
 
     this.health = 100;
