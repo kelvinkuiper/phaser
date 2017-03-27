@@ -55,13 +55,16 @@ function create() {
 
     //create triggers
     triggers = game.add.group();
+    triggers.enableBody = true;
 
     var ledge1 = platforms.create(100, 150, 'ground');
     ledge1.body.immovable = true;
 
-    triggers.create(100, 160);
-    triggers.create(200, 160);
+    triggers.create(70, 120);
+    triggers.create(220, 120);
 
+    triggers.create(470, game.height - 60);
+    triggers.create(620, game.height - 60);
     
     var ledge2 = platforms.create(0, game.height - 40, 'ground');
     ledge2.body.immovable = true;
@@ -93,7 +96,12 @@ function create() {
     enemies.enableBody = true;
 
     //add enemies
-    new Enemy(enemies.create(50, 50, 'enemy'), false);
+
+    for(var i = 0; i < 5; i++) {
+       new Enemy(enemies.create(game.randomX, game.rndom, 'enemy'), false);
+    }
+
+    
     new Enemy(enemies.create(450, 50, 'enemy'), true);
     new Enemy(enemies.create(550, 50, 'enemy'), true);
     new Enemy(enemies.create(150, 50, 'enemy'), true);
@@ -111,6 +119,8 @@ function update() {
     var enemyHitsPlatform = game.physics.arcade.collide(enemies, platforms);
     var playerHitsEnemy = game.physics.arcade.overlap(enemies, player, playerHitEnemy);
     var playerHitsPickup = game.physics.arcade.overlap(player, pickups, collectStar);
+
+    var EnemyHitsTrigger = game.physics.arcade.overlap(enemies, triggers, enemyHitTrigger);
    
     // Player movement
     if(player.alive) {
@@ -144,6 +154,10 @@ function update() {
     
 }
 
+var enemyHitTrigger = function(enemy, trigger) {
+    enemy.body.velocity.x = -enemy.body.velocity.x;
+}
+
 function render() {
 
     triggers.forEach(function(trigger) {
@@ -167,7 +181,7 @@ var Enemy = function(sprite, moveingToLeft) {
     this.timer = null;
     this.lastMove = null; 
 
-    this.speed = Math.floor((Math.random() * 10) + 1)
+    this.speed = 100; //Math.floor((Math.random() * 10) + 1)
 
     if(this.moveingToLeft) {
          this.sprite.body.velocity.x = -this.speed;
